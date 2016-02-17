@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using FileWatcher.Core;
+using EvilBaschdi.Core.DirectoryExtensions;
 
 namespace FileWatcher.Internal
 {

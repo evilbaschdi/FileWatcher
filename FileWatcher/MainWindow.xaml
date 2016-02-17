@@ -3,7 +3,7 @@
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
                       Title="FileWatcher" Height="600" Width="800" ShowInTaskbar="False"
-                      GlowBrush="{DynamicResource AccentColorBrush}">
+                      GlowBrush="{DynamicResource AccentColorBrush}" Icon="Resources/b.ico">
     <Grid>
         <DataGrid Name="FileGrid" AutoGenerateColumns="False" Margin="10,10,10,10">
             <DataGrid.Columns>

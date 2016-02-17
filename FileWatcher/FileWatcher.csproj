@@ -37,7 +37,13 @@
     <DocumentationFile>bin\Release\FileWatcher.XML</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\b.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EvilBaschdi.Core">
+      <HintPath>..\..\EvilBaschdi.Core\EvilBaschdi.Core\bin\Release\EvilBaschdi.Core.dll</HintPath>
+    </Reference>
     <Reference Include="MahApps.Metro, Version=1.2.4.0, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.1.2.4.0\lib\net45\MahApps.Metro.dll</HintPath>
       <Private>True</Private>
@@ -75,11 +81,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\FilePath.cs">
-      <DependentUpon>IFilePath.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Core\Helpers.cs" />
-    <Compile Include="Core\IFilePath.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Internal\Worker.cs" />
     <Compile Include="Internal\FileWatcherHelper.cs" />
@@ -127,7 +128,16 @@
   <ItemGroup>
     <Resource Include="Resources\Entypo-license.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\b.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\b.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>"$(DevEnvDir)\devenv" "$(ProjectDir)\..\..\EvilBaschdi.Core\EvilBaschdi.Core\EvilBaschdi.Core.csproj" /Rebuild "Release|AnyCPU"</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

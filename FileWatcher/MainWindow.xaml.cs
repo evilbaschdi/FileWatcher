@@ -7,7 +7,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Navigation;
-using FileWatcher.Core;
+using EvilBaschdi.Core.DirectoryExtensions;
 using FileWatcher.Internal;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;

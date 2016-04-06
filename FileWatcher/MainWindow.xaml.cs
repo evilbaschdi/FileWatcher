@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Navigation;
 using EvilBaschdi.Core.DirectoryExtensions;
+using EvilBaschdi.Core.MultiThreading;
 using FileWatcher.Internal;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
@@ -22,6 +23,7 @@ namespace FileWatcher
         private readonly Worker _worker;
         private string _message;
         private List<FileInfo> _list;
+        private readonly IMultiThreadingHelper _multiThreadingHelper;
 
         /// <summary>
         /// </summary>
@@ -30,7 +32,8 @@ namespace FileWatcher
             InitializeComponent();
             WindowState = WindowState.Minimized;
             var app = (App) Application.Current;
-            var filePath = new FilePath();
+            _multiThreadingHelper = new MultiThreadingHelper();
+            var filePath = new FilePath(_multiThreadingHelper);
             _worker = new Worker(filePath, app);
 
             using (var backgroundWorker = new BackgroundWorker())

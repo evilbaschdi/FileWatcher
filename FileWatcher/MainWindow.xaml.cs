@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Navigation;
 using EvilBaschdi.Core.DirectoryExtensions;
-using EvilBaschdi.Core.MultiThreading;
+using EvilBaschdi.Core.Threading;
 using FileWatcher.Internal;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;

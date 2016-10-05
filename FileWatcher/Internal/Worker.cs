@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using EvilBaschdi.Core.DirectoryExtensions;
@@ -20,6 +21,10 @@ namespace FileWatcher.Internal
         /// <summary>
         ///     Initialisiert eine neue Instanz der <see cref="T:System.Object" />-Klasse.
         /// </summary>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="filePath" /> is <see langword="null" />.
+        ///     <paramref name="app" /> is <see langword="null" />.
+        /// </exception>
         public Worker(IFilePath filePath, App app)
         {
             if (filePath == null)
@@ -38,6 +43,7 @@ namespace FileWatcher.Internal
         /// <summary>
         /// </summary>
         /// <returns></returns>
+        /// <exception cref="AggregateException">The exception that contains all the individual exceptions thrown on all threads.</exception>
         public List<FileInfo> Compare()
         {
             var listFromSetting = ConvertPathsFromSettingToDictionary();
@@ -70,6 +76,13 @@ namespace FileWatcher.Internal
 
         /// <summary>
         /// </summary>
+        /// <exception cref="AggregateException">The exception that contains all the individual exceptions thrown on all threads.</exception>
+        /// <exception cref="UnauthorizedAccessException">Access is denied. </exception>
+        /// <exception cref="DirectoryNotFoundException">The specified path is invalid (for example, it is on an unmapped drive). </exception>
+        /// <exception cref="IOException">
+        ///     path includes an incorrect or invalid syntax for file name, directory name, or volume label syntax.
+        /// </exception>
+        /// <exception cref="SecurityException">The caller does not have the required permission. </exception>
         public void Write()
         {
             var pathsForSetting = new ConcurrentBag<FileWatcherHelper>();
@@ -88,7 +101,7 @@ namespace FileWatcher.Internal
             StreamWriter streamWriter = null;
             try
             {
-                var serialiser = new XmlSerializer(typeof (List<FileWatcherHelper>));
+                var serialiser = new XmlSerializer(typeof(List<FileWatcherHelper>));
                 streamWriter = new StreamWriter(_xmlPath);
                 serialiser.Serialize(streamWriter, pathsForSetting.ToList());
             }
@@ -103,7 +116,7 @@ namespace FileWatcher.Internal
             StreamReader streamReader = null;
             try
             {
-                var serialiser = new XmlSerializer(typeof (List<FileWatcherHelper>));
+                var serialiser = new XmlSerializer(typeof(List<FileWatcherHelper>));
                 var paths = new ConcurrentBag<FileWatcherHelper>();
                 streamReader = new StreamReader(_xmlPath);
 

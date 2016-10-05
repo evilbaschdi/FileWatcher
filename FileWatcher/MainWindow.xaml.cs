@@ -9,6 +9,7 @@ using System.Windows.Data;
 using System.Windows.Navigation;
 using EvilBaschdi.Core.DirectoryExtensions;
 using EvilBaschdi.Core.Threading;
+using EvilBaschdi.Core.Wpf;
 using FileWatcher.Internal;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
@@ -23,7 +24,7 @@ namespace FileWatcher
         private readonly Worker _worker;
         private string _message;
         private List<FileInfo> _list;
-        private readonly IMultiThreadingHelper _multiThreadingHelper;
+        private readonly IToast _toast;
 
         /// <summary>
         /// </summary>
@@ -32,9 +33,10 @@ namespace FileWatcher
             InitializeComponent();
             WindowState = WindowState.Minimized;
             var app = (App) Application.Current;
-            _multiThreadingHelper = new MultiThreadingHelper();
-            var filePath = new FilePath(_multiThreadingHelper);
+            var multiThreadingHelper = new MultiThreadingHelper();
+            var filePath = new FilePath(multiThreadingHelper);
             _worker = new Worker(filePath, app);
+            _toast = new Toast(Title);
 
             using (var backgroundWorker = new BackgroundWorker())
             {
@@ -52,6 +54,7 @@ namespace FileWatcher
                 ShowInTaskbar = true;
                 WindowState = WindowState.Normal;
                 ShowMessage("directories with changed files:", _message);
+                _toast.Show("directories with changed files:", _message);
                 SetFileGrid();
             }
             else

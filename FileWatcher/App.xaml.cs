@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -21,23 +22,28 @@ namespace FileWatcher
         ///     Löst das <see cref="E:System.Windows.Application.Startup" />-Ereignis aus.
         /// </summary>
         /// <param name="e">Ein <see cref="T:System.Windows.StartupEventArgs" />, das die Ereignisdaten enthält.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="e" /> is <see langword="null" />.</exception>
+        /// <exception cref="ConfigurationErrorsException">
+        ///     Could not retrieve a
+        ///     <see cref="T:System.Collections.Specialized.NameValueCollection" /> object with the application settings data.
+        /// </exception>
         protected override void OnStartup(StartupEventArgs e)
         {
             if (e == null)
             {
                 throw new ArgumentNullException(nameof(e));
             }
-            var config = System.Configuration.ConfigurationManager.AppSettings;
+            var config = ConfigurationManager.AppSettings;
             var styleAccent = ThemeManager.GetAccent(config["Accent"]);
             var styleTheme = ThemeManager.GetAppTheme(config["Theme"]);
             ThemeManager.ChangeAppStyle(Current, styleAccent, styleTheme);
 
             base.OnStartup(e);
 
+            PathsToWatch = new List<string>();
+
             if (e.Args.Any())
             {
-                PathsToWatch = new List<string>();
-
                 foreach (var arg in e.Args)
                 {
                     var local = arg.TrimStart('"').TrimEnd('"');

@@ -16,7 +16,7 @@ namespace FileWatcher.Internal
     {
         private readonly IFilePath _filePath;
         private readonly App _app;
-        private readonly string _xmlPath = @"c:\temp\fileWatcher.xml";
+        private readonly string _xmlPath;
 
         /// <summary>
         ///     Initialisiert eine neue Instanz der <see cref="T:System.Object" />-Klasse.
@@ -38,6 +38,7 @@ namespace FileWatcher.Internal
 
             _filePath = filePath;
             _app = app;
+            _xmlPath = _app.XmlPath;
         }
 
         /// <summary>

@@ -4,19 +4,24 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using MahApps.Metro;
 
 namespace FileWatcher
 {
     /// <summary>
     ///     Interaction logic for App.xaml
     /// </summary>
+    // ReSharper disable once RedundantExtendsListEntry
     public partial class App : Application
     {
         /// <summary>
         ///     List of paths the app should scan.
         /// </summary>
         public IList<string> PathsToWatch { get; set; }
+
+        /// <summary>
+        ///     Path to store xml db file.
+        /// </summary>
+        public string XmlPath { get; set; }
 
         /// <summary>
         ///     Löst das <see cref="E:System.Windows.Application.Startup" />-Ereignis aus.
@@ -34,24 +39,37 @@ namespace FileWatcher
                 throw new ArgumentNullException(nameof(e));
             }
             var config = ConfigurationManager.AppSettings;
-            var styleAccent = ThemeManager.GetAccent(config["Accent"]);
-            var styleTheme = ThemeManager.GetAppTheme(config["Theme"]);
-            ThemeManager.ChangeAppStyle(Current, styleAccent, styleTheme);
+            XmlPath = $@"{config["XmlDbPath"].TrimEnd('\\')}\fileWatcher.xml";
+            var pathsToWatch = config["PathsToWatch"];
 
             base.OnStartup(e);
 
             PathsToWatch = new List<string>();
 
+            if (!string.IsNullOrWhiteSpace(pathsToWatch))
+            {
+                var paths = pathsToWatch.Split(';');
+                foreach (var path in paths)
+                {
+                    AggregatePathsToWatch(path);
+                }
+            }
+
             if (e.Args.Any())
             {
                 foreach (var arg in e.Args)
                 {
-                    var local = arg.TrimStart('"').TrimEnd('"');
-                    if (Directory.Exists(local))
-                    {
-                        PathsToWatch.Add(local);
-                    }
+                    var path = arg.TrimStart('"').TrimEnd('"');
+                    AggregatePathsToWatch(path);
                 }
+            }
+        }
+
+        private void AggregatePathsToWatch(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                PathsToWatch.Add(path);
             }
         }
     }

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -14,10 +14,8 @@ using EvilBaschdi.Core.Application;
 using EvilBaschdi.Core.DirectoryExtensions;
 using EvilBaschdi.Core.Threading;
 using EvilBaschdi.Core.Wpf;
-using FileWatcher.Core;
 using FileWatcher.Internal;
 using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
 
 namespace FileWatcher
 {
@@ -32,20 +30,19 @@ namespace FileWatcher
         private List<FileInfo> _list;
         private readonly App _app;
         private readonly IMetroStyle _style;
-
-        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-        private readonly ISettings _coreSettings;
-
+        private readonly IDialogService _dialogService;
         private readonly int _overrideProtection;
 
         /// <summary>
         /// </summary>
         public MainWindow()
         {
-            _coreSettings = new CoreSettings();
             InitializeComponent();
-            _style = new MetroStyle(this, Accent, ThemeSwitch, _coreSettings);
+            ISettings coreSettings = new CoreSettings(Properties.Settings.Default);
+            IThemeManagerHelper themeManagerHelper = new ThemeManagerHelper();
+            _style = new MetroStyle(this, Accent, ThemeSwitch, coreSettings, themeManagerHelper);
             _style.Load(true);
+            _dialogService = new DialogService(this);
             var linkerTime = Assembly.GetExecutingAssembly().GetLinkerTime();
             LinkerTime.Content = linkerTime.ToString(CultureInfo.InvariantCulture);
             WindowState = WindowState.Minimized;
@@ -54,29 +51,9 @@ namespace FileWatcher
             var filePath = new FilePath(multiThreadingHelper);
             _worker = new Worker(filePath, _app);
 
-            using (var backgroundWorker = new BackgroundWorker())
-            {
-                backgroundWorker.DoWork += (sender, args) => Load();
-                backgroundWorker.WorkerReportsProgress = true;
-                backgroundWorker.RunWorkerCompleted += BackgroundWorkerRunWorkerCompleted;
-                backgroundWorker.RunWorkerAsync();
-            }
-            _overrideProtection = 1;
-        }
 
-        private void BackgroundWorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(_message))
-            {
-                ShowInTaskbar = true;
-                WindowState = WindowState.Normal;
-                ShowMessage("directories with changed files:", _message);
-                SetFileGrid();
-            }
-            else
-            {
-                Close();
-            }
+            LoadAsync();
+            _overrideProtection = 1;
         }
 
         private void SetFileGrid()
@@ -86,7 +63,25 @@ namespace FileWatcher
             FileGrid.ItemsSource = listCollectionView;
         }
 
-        private void Load()
+        private async void LoadAsync()
+        {
+            var task = Task.Factory.StartNew(Compare);
+            await task;
+
+            if (!string.IsNullOrWhiteSpace(_message))
+            {
+                ShowInTaskbar = true;
+                WindowState = WindowState.Normal;
+                await _dialogService.ShowMessage("directories with changed files:", _message);
+                SetFileGrid();
+            }
+            else
+            {
+                Close();
+            }
+        }
+
+        private void Compare()
         {
             if (!File.Exists(_app.XmlPath))
             {
@@ -99,20 +94,6 @@ namespace FileWatcher
             _worker.Write();
         }
 
-        /// <summary>
-        /// </summary>
-        /// <param name="title"></param>
-        /// <param name="message"></param>
-        public async void ShowMessage(string title, string message)
-        {
-            var options = new MetroDialogSettings
-                          {
-                              ColorScheme = MetroDialogColorScheme.Theme
-                          };
-
-            MetroDialogOptions = options;
-            await this.ShowMessageAsync(title, message);
-        }
 
         private void HyperlinkRequestNavigate(object sender, RequestNavigateEventArgs e)
         {

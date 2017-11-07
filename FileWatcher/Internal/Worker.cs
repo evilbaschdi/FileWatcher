@@ -27,17 +27,8 @@ namespace FileWatcher.Internal
         /// </exception>
         public Worker(IFilePath filePath, App app)
         {
-            if (filePath == null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-            if (app == null)
-            {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            _filePath = filePath;
-            _app = app;
+            _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+            _app = app ?? throw new ArgumentNullException(nameof(app));
             _xmlPath = _app.XmlPath;
         }
 

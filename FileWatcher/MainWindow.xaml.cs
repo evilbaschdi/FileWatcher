@@ -10,11 +10,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Navigation;
-using EvilBaschdi.Core.Application;
-using EvilBaschdi.Core.DirectoryExtensions;
-using EvilBaschdi.Core.Threading;
-using EvilBaschdi.Core.Wpf;
+using EvilBaschdi.Core.Extensions;
+using EvilBaschdi.Core.Internal;
+using EvilBaschdi.CoreExtended;
+using EvilBaschdi.CoreExtended.AppHelpers;
+using EvilBaschdi.CoreExtended.Metro;
 using FileWatcher.Internal;
+using FileWatcher.Properties;
 using MahApps.Metro.Controls;
 
 namespace FileWatcher
@@ -25,30 +27,32 @@ namespace FileWatcher
     // ReSharper disable once RedundantExtendsListEntry
     public partial class MainWindow : MetroWindow
     {
-        private readonly Worker _worker;
+        private readonly IWorker _worker;
         private string _message;
         private List<FileInfo> _list;
         private readonly App _app;
-        private readonly IMetroStyle _style;
+
         private readonly IDialogService _dialogService;
         private readonly int _overrideProtection;
+        private readonly IApplicationStyle _applicationStyle;
 
-        /// <summary>
-        /// </summary>
+
+        /// <inheritdoc />
         public MainWindow()
         {
             InitializeComponent();
-            ISettings coreSettings = new CoreSettings(Properties.Settings.Default);
+            IAppSettingsBase appSettingsBase = new AppSettingsBase(Settings.Default);
+            IApplicationStyleSettings applicationStyleSettings = new ApplicationStyleSettings(appSettingsBase);
             IThemeManagerHelper themeManagerHelper = new ThemeManagerHelper();
-            _style = new MetroStyle(this, Accent, ThemeSwitch, coreSettings, themeManagerHelper);
-            _style.Load(true);
+            _applicationStyle = new ApplicationStyle(this, Accent, ThemeSwitch, applicationStyleSettings, themeManagerHelper);
+            _applicationStyle.Load(true);
             _dialogService = new DialogService(this);
             var linkerTime = Assembly.GetExecutingAssembly().GetLinkerTime();
             LinkerTime.Content = linkerTime.ToString(CultureInfo.InvariantCulture);
             WindowState = WindowState.Minimized;
             _app = (App) Application.Current;
-            var multiThreadingHelper = new MultiThreadingHelper();
-            var filePath = new FilePath(multiThreadingHelper);
+            var multiThreadingHelper = new MultiThreading();
+            var filePath = new FileListFromPath(multiThreadingHelper);
             _worker = new Worker(filePath, _app);
 
 
@@ -59,7 +63,7 @@ namespace FileWatcher
         private void SetFileGrid()
         {
             var listCollectionView = new ListCollectionView(_list);
-            listCollectionView.GroupDescriptions?.Add(new PropertyGroupDescription("DirectoryName"));
+            listCollectionView.GroupDescriptions.Add(new PropertyGroupDescription("DirectoryName"));
             FileGrid.ItemsSource = listCollectionView;
         }
 
@@ -87,6 +91,7 @@ namespace FileWatcher
             {
                 _worker.Write();
             }
+
             _list = _worker.Compare();
 
             _message = string.Join(Environment.NewLine, _list.Select(item => item.DirectoryName).Distinct());
@@ -144,7 +149,8 @@ namespace FileWatcher
             {
                 return;
             }
-            _style.SaveStyle();
+
+            _applicationStyle.SaveStyle();
         }
 
         private void Theme(object sender, EventArgs e)
@@ -153,15 +159,8 @@ namespace FileWatcher
             {
                 return;
             }
-            var routedEventArgs = e as RoutedEventArgs;
-            if (routedEventArgs != null)
-            {
-                _style.SetTheme(sender, routedEventArgs);
-            }
-            else
-            {
-                _style.SetTheme(sender);
-            }
+
+            _applicationStyle.SetTheme(sender);
         }
 
         private void AccentOnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -170,7 +169,8 @@ namespace FileWatcher
             {
                 return;
             }
-            _style.SetAccent(sender, e);
+
+            _applicationStyle.SetAccent(sender, e);
         }
 
         #endregion MetroStyle

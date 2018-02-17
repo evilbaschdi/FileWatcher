@@ -6,15 +6,17 @@ using System.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using EvilBaschdi.Core.DirectoryExtensions;
+using EvilBaschdi.Core.Internal;
+using EvilBaschdi.Core.Model;
+using FileWatcher.Model;
 
 namespace FileWatcher.Internal
 {
     /// <summary>
     /// </summary>
-    public class Worker
+    public class Worker : IWorker
     {
-        private readonly IFilePath _filePath;
+        private readonly IFileListFromPath _filePath;
         private readonly App _app;
         private readonly string _xmlPath;
 
@@ -25,7 +27,7 @@ namespace FileWatcher.Internal
         ///     <paramref name="filePath" /> is <see langword="null" />.
         ///     <paramref name="app" /> is <see langword="null" />.
         /// </exception>
-        public Worker(IFilePath filePath, App app)
+        public Worker(IFileListFromPath filePath, App app)
         {
             _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
             _app = app ?? throw new ArgumentNullException(nameof(app));
@@ -63,6 +65,7 @@ namespace FileWatcher.Internal
                         }
                     });
             }
+
             return newer.ToList();
         }
 
@@ -146,7 +149,11 @@ namespace FileWatcher.Internal
                                            "pdb",
                                            "xml"
                                        };
-            Parallel.ForEach(pathsToWatch, pathToWath => { Parallel.ForEach(_filePath.GetFileList(pathToWath, null, excludeExtensionList), path => { paths.Add(path); }); });
+            var filter = new FileListFromPathFilter
+                         {
+                             FilterExtensionsNotToEqual = excludeExtensionList
+                         };
+            Parallel.ForEach(pathsToWatch, pathToWath => { Parallel.ForEach(_filePath.ValueFor(pathToWath, filter), path => { paths.Add(path); }); });
             return paths.ToList();
         }
     }

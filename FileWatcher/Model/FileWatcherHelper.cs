@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace FileWatcher.Internal
+namespace FileWatcher.Model
 {
     /// <summary>
     /// </summary>

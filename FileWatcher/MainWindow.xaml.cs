@@ -21,17 +21,18 @@ using MahApps.Metro.Controls;
 
 namespace FileWatcher
 {
+    /// <inheritdoc cref="MetroWindow" />
     /// <summary>
     ///     Interaction logic for MainWindow.xaml
     /// </summary>
     // ReSharper disable once RedundantExtendsListEntry
     public partial class MainWindow : MetroWindow
     {
-        private readonly IWorker _worker;
+        private readonly ICompareFileLists _compareFileLists;
+        private readonly IWriteFileListToDb _writeFileListToDb;
         private string _message;
         private List<FileInfo> _list;
         private readonly App _app;
-
         private readonly IDialogService _dialogService;
         private readonly int _overrideProtection;
         private readonly IApplicationStyle _applicationStyle;
@@ -51,10 +52,11 @@ namespace FileWatcher
             LinkerTime.Content = linkerTime.ToString(CultureInfo.InvariantCulture);
             WindowState = WindowState.Minimized;
             _app = (App) Application.Current;
-            var multiThreadingHelper = new MultiThreading();
-            var filePath = new FileListFromPath(multiThreadingHelper);
-            _worker = new Worker(filePath, _app);
-
+            IMultiThreading multiThreadingHelper = new MultiThreading();
+            IFileListFromPath fileListFromPath = new FileListFromPath(multiThreadingHelper);
+            IListFromFileSystem listFromFileSystem = new ListFromFileSystem(_app, fileListFromPath);
+            _compareFileLists = new CompareFileLists(listFromFileSystem, _app);
+            _writeFileListToDb = new WriteFileListToDb(listFromFileSystem, _app);
 
             LoadAsync();
             _overrideProtection = 1;
@@ -87,16 +89,16 @@ namespace FileWatcher
 
         private void Compare()
         {
-            if (!File.Exists(_app.XmlPath))
+            if (!File.Exists(_app.JsonPath))
             {
-                _worker.Write();
+                _writeFileListToDb.Run();
             }
 
-            _list = _worker.Compare();
+            _list = _compareFileLists.Value;
 
             _message = string.Join(Environment.NewLine, _list.Select(item => item.DirectoryName).Distinct());
 
-            _worker.Write();
+            _writeFileListToDb.Run();
         }
 
 

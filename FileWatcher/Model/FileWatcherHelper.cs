@@ -1,22 +1,20 @@
 using System;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace FileWatcher.Model
 {
     /// <summary>
     /// </summary>
-    [Serializable]
-    [DataContract]
     public class FileWatcherHelper
     {
         /// <summary>
         /// </summary>
-        [DataMember]
+        [JsonProperty("Path")]
         public string Path { get; set; }
 
         /// <summary>
         /// </summary>
-        [DataMember]
+        [JsonProperty("LastWriteTime")]
         public DateTime LastWriteTime { get; set; }
     }
 }

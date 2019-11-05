@@ -4,6 +4,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using EvilBaschdi.CoreExtended.Metro;
 
 namespace FileWatcher
 {
@@ -16,15 +17,14 @@ namespace FileWatcher
     public partial class App : Application
     {
         /// <summary>
-        ///     List of paths the app should scan.
-        /// </summary>
-        public IList<string> PathsToWatch { get; private set; }
-
-
-        /// <summary>
         ///     Path to store json db file.
         /// </summary>
         public string JsonPath { get; private set; }
+
+        /// <summary>
+        ///     List of paths the app should scan.
+        /// </summary>
+        public IList<string> PathsToWatch { get; private set; }
 
         /// <inheritdoc />
         /// <summary>
@@ -42,6 +42,9 @@ namespace FileWatcher
             {
                 throw new ArgumentNullException(nameof(e));
             }
+
+            var themeManagerHelper = new ThemeManagerHelper();
+            themeManagerHelper.RegisterSystemColorTheme();
 
             var config = ConfigurationManager.AppSettings;
             JsonPath = $@"{config["XmlDbPath"].TrimEnd('\\')}\fileWatcher.json";

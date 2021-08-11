@@ -4,7 +4,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using EvilBaschdi.CoreExtended.Metro;
+using ControlzEx.Theming;
 
 namespace FileWatcher
 {
@@ -43,11 +43,11 @@ namespace FileWatcher
                 throw new ArgumentNullException(nameof(e));
             }
 
-            var themeManagerHelper = new ThemeManagerHelper();
-            themeManagerHelper.RegisterSystemColorTheme();
+
+            ThemeManager.Current.SyncTheme(ThemeSyncMode.SyncAll);
 
             var config = ConfigurationManager.AppSettings;
-            JsonPath = $@"{config["XmlDbPath"].TrimEnd('\\')}\fileWatcher.json";
+            JsonPath = $@"{config["XmlDbPath"]?.TrimEnd('\\')}\fileWatcher.json";
             var pathsToWatch = config["PathsToWatch"];
 
             base.OnStartup(e);
@@ -63,7 +63,11 @@ namespace FileWatcher
                 }
             }
 
-            if (e.Args.Any())
+            if (!e.Args.Any())
+            {
+                return;
+            }
+
             {
                 foreach (var arg in e.Args)
                 {

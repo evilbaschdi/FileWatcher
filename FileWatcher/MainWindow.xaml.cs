@@ -9,12 +9,10 @@ using System.Windows.Data;
 using System.Windows.Navigation;
 using EvilBaschdi.Core.Internal;
 using EvilBaschdi.CoreExtended;
-using EvilBaschdi.CoreExtended.Metro;
-using EvilBaschdi.CoreExtended.Mvvm;
-using EvilBaschdi.CoreExtended.Mvvm.View;
-using EvilBaschdi.CoreExtended.Mvvm.ViewModel;
+using EvilBaschdi.CoreExtended.Controls.About;
 using FileWatcher.Internal;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace FileWatcher
 {
@@ -27,8 +25,8 @@ namespace FileWatcher
     {
         private readonly App _app;
         private readonly ICompareFileLists _compareFileLists;
-        private readonly IDialogService _dialogService;
-        private readonly IThemeManagerHelper _themeManagerHelper;
+
+
         private readonly IWriteFileListToDb _writeFileListToDb;
         private List<FileInfo> _list;
         private string _message;
@@ -38,14 +36,14 @@ namespace FileWatcher
         public MainWindow()
         {
             InitializeComponent();
-            _themeManagerHelper = new ThemeManagerHelper();
-            IApplicationStyle applicationStyle = new ApplicationStyle(_themeManagerHelper);
+
+            IApplicationStyle applicationStyle = new ApplicationStyle();
             applicationStyle.Load(true);
-            _dialogService = new DialogService(this);
+
             WindowState = WindowState.Minimized;
             _app = (App) Application.Current;
-            IMultiThreading multiThreadingHelper = new MultiThreading();
-            IFileListFromPath fileListFromPath = new FileListFromPath(multiThreadingHelper);
+
+            IFileListFromPath fileListFromPath = new FileListFromPath();
             IListFromFileSystem listFromFileSystem = new ListFromFileSystem(_app, fileListFromPath);
             _compareFileLists = new CompareFileLists(listFromFileSystem, _app);
             _writeFileListToDb = new WriteFileListToDb(listFromFileSystem, _app);
@@ -56,7 +54,8 @@ namespace FileWatcher
         private void SetFileGrid()
         {
             var listCollectionView = new ListCollectionView(_list);
-            listCollectionView.GroupDescriptions.Add(new PropertyGroupDescription("DirectoryName"));
+            listCollectionView.GroupDescriptions?.Add(new PropertyGroupDescription("DirectoryName"));
+
             FileGrid.ItemsSource = listCollectionView;
         }
 
@@ -69,7 +68,7 @@ namespace FileWatcher
             {
                 ShowInTaskbar = true;
                 WindowState = WindowState.Normal;
-                await _dialogService.ShowMessage("directories with changed files:", _message);
+                await this.ShowMessageAsync("directories with changed files:", _message);
                 SetFileGrid();
             }
             else
@@ -102,11 +101,11 @@ namespace FileWatcher
         private void AboutWindowClick(object sender, RoutedEventArgs e)
         {
             var assembly = typeof(MainWindow).Assembly;
-            IAboutWindowContent aboutWindowContent = new AboutWindowContent(assembly, $@"{AppDomain.CurrentDomain.BaseDirectory}\b.png");
+            IAboutContent aboutWindowContent = new AboutContent(assembly, $@"{AppDomain.CurrentDomain.BaseDirectory}\b.png");
 
             var aboutWindow = new AboutWindow
                               {
-                                  DataContext = new AboutViewModel(aboutWindowContent, _themeManagerHelper)
+                                  DataContext = new AboutViewModel(aboutWindowContent)
                               };
 
             aboutWindow.ShowDialog();

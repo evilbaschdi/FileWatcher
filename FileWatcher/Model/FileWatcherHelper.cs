@@ -9,12 +9,12 @@ namespace FileWatcher.Model
     {
         /// <summary>
         /// </summary>
-        [JsonProperty("Path")]
-        public string Path { get; set; }
+        [JsonProperty("LastWriteTime")]
+        public DateTime LastWriteTime { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty("LastWriteTime")]
-        public DateTime LastWriteTime { get; set; }
+        [JsonProperty("Path")]
+        public string Path { get; set; }
     }
 }

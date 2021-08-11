@@ -10,8 +10,8 @@ namespace FileWatcher.Internal
     /// <inheritdoc />
     public class WriteFileListToDb : IWriteFileListToDb
     {
-        private readonly IListFromFileSystem _listFromFileSystem;
         private readonly App _app;
+        private readonly IListFromFileSystem _listFromFileSystem;
 
         /// <summary>
         ///     Constructor

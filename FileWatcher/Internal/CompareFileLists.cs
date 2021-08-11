@@ -12,8 +12,8 @@ namespace FileWatcher.Internal
     /// <inheritdoc />
     public class CompareFileLists : ICompareFileLists
     {
-        private readonly IListFromFileSystem _listFromFileSystem;
         private readonly App _app;
+        private readonly IListFromFileSystem _listFromFileSystem;
 
         /// <summary>
         ///     Constructor
@@ -37,26 +37,28 @@ namespace FileWatcher.Internal
                 var newer = new ConcurrentBag<FileInfo>();
                 var listFromFileSystem = _listFromFileSystem.Value;
 
-                if (listFromSetting.Any() && listFromFileSystem.Any())
+                if (listFromSetting == null || listFromFileSystem == null || !listFromSetting.Any() || !listFromFileSystem.Any())
                 {
-                    Parallel.ForEach(listFromFileSystem,
-                        path =>
+                    return new();
+                }
+
+                Parallel.ForEach(listFromFileSystem,
+                    path =>
+                    {
+                        var file = new FileInfo(path);
+                        if (listFromSetting.Any(item => item.Path == path))
                         {
-                            var file = new FileInfo(path);
-                            if (listFromSetting.Any(item => item.Path == path))
-                            {
-                                var fromSetting = listFromSetting.First(list => list.Path == path);
-                                if (File.Exists(fromSetting.Path) && fromSetting.LastWriteTime < file.LastWriteTime)
-                                {
-                                    newer.Add(file);
-                                }
-                            }
-                            else
+                            var fromSetting = listFromSetting.First(list => list.Path == path);
+                            if (File.Exists(fromSetting.Path) && fromSetting.LastWriteTime < file.LastWriteTime)
                             {
                                 newer.Add(file);
                             }
-                        });
-                }
+                        }
+                        else
+                        {
+                            newer.Add(file);
+                        }
+                    });
 
                 return newer.ToList();
             }

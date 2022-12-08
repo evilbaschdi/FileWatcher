@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using EvilBaschdi.Core;
+﻿using System.IO;
 
-namespace FileWatcher.Internal
+namespace FileWatcher.Internal;
+
+/// <inheritdoc />
+public interface ICompareFileLists : IValueOfList<FileInfo>
 {
-    /// <inheritdoc />
-    public interface ICompareFileLists : IValue<List<FileInfo>>
-    {
-    }
 }

@@ -1,55 +1,51 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IO;
-using System.Threading.Tasks;
 using FileWatcher.Model;
 using Newtonsoft.Json;
 
-namespace FileWatcher.Internal
+namespace FileWatcher.Internal;
+
+/// <inheritdoc />
+public class WriteFileListToDb : IWriteFileListToDb
 {
-    /// <inheritdoc />
-    public class WriteFileListToDb : IWriteFileListToDb
+    private readonly App _app;
+    private readonly IListFromFileSystem _listFromFileSystem;
+
+    /// <summary>
+    ///     Constructor
+    /// </summary>
+    /// <param name="listFromFileSystem"></param>
+    /// <param name="app"></param>
+    public WriteFileListToDb(IListFromFileSystem listFromFileSystem, App app)
     {
-        private readonly App _app;
-        private readonly IListFromFileSystem _listFromFileSystem;
+        _listFromFileSystem = listFromFileSystem ?? throw new ArgumentNullException(nameof(listFromFileSystem));
+        _app = app ?? throw new ArgumentNullException(nameof(app));
+    }
 
-        /// <summary>
-        ///     Constructor
-        /// </summary>
-        /// <param name="listFromFileSystem"></param>
-        /// <param name="app"></param>
-        public WriteFileListToDb(IListFromFileSystem listFromFileSystem, App app)
-        {
-            _listFromFileSystem = listFromFileSystem ?? throw new ArgumentNullException(nameof(listFromFileSystem));
-            _app = app ?? throw new ArgumentNullException(nameof(app));
-        }
+    /// <inheritdoc />
+    public void Run()
+    {
+        var pathsForSetting = new ConcurrentBag<FileWatcherHelper>();
 
-        /// <inheritdoc />
-        public void Run()
-        {
-            var pathsForSetting = new ConcurrentBag<FileWatcherHelper>();
-
-            Parallel.ForEach(_listFromFileSystem.Value,
-                name =>
-                {
-                    var file = new FileInfo(name);
-                    var fileWatcherHelper = new FileWatcherHelper
-                                            {
-                                                Path = name,
-                                                LastWriteTime = file.LastWriteTime
-                                            };
-                    pathsForSetting.Add(fileWatcherHelper);
-                });
-
-
-            var json = JsonConvert.SerializeObject(pathsForSetting, Formatting.Indented);
-
-            if (File.Exists(_app.JsonPath))
+        Parallel.ForEach(_listFromFileSystem.Value,
+            name =>
             {
-                File.Delete(_app.JsonPath);
-            }
+                var file = new FileInfo(name);
+                var fileWatcherHelper = new FileWatcherHelper
+                                        {
+                                            Path = name,
+                                            LastWriteTime = file.LastWriteTime
+                                        };
+                pathsForSetting.Add(fileWatcherHelper);
+            });
 
-            File.AppendAllText(_app.JsonPath, json);
+        var json = JsonConvert.SerializeObject(pathsForSetting, Formatting.Indented);
+
+        if (File.Exists(_app.JsonPath))
+        {
+            File.Delete(_app.JsonPath);
         }
+
+        File.AppendAllText(_app.JsonPath, json);
     }
 }

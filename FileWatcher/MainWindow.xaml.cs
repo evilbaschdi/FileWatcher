@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Navigation;
@@ -14,103 +10,95 @@ using FileWatcher.Internal;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 
-namespace FileWatcher
+namespace FileWatcher;
+
+/// <inheritdoc cref="MetroWindow" />
+/// <summary>
+///     Interaction logic for MainWindow.xaml
+/// </summary>
+// ReSharper disable once RedundantExtendsListEntry
+public partial class MainWindow : MetroWindow
 {
-    /// <inheritdoc cref="MetroWindow" />
-    /// <summary>
-    ///     Interaction logic for MainWindow.xaml
-    /// </summary>
-    // ReSharper disable once RedundantExtendsListEntry
-    public partial class MainWindow : MetroWindow
+    private readonly App _app;
+    private readonly ICompareFileLists _compareFileLists;
+    private readonly IApplicationStyle _style;
+
+    private readonly IWriteFileListToDb _writeFileListToDb;
+    private List<FileInfo> _list;
+    private string _message;
+
+    /// <inheritdoc />
+    public MainWindow()
     {
-        private readonly App _app;
-        private readonly ICompareFileLists _compareFileLists;
+        InitializeComponent();
 
+        _style = new ApplicationStyle(true);
+        _style.Run();
 
-        private readonly IWriteFileListToDb _writeFileListToDb;
-        private List<FileInfo> _list;
-        private string _message;
-        private readonly IRoundCorners _roundCorners;
+        WindowState = WindowState.Minimized;
+        _app = (App)Application.Current;
 
+        IFileListFromPath fileListFromPath = new FileListFromPath();
+        IListFromFileSystem listFromFileSystem = new ListFromFileSystem(_app, fileListFromPath);
+        _compareFileLists = new CompareFileLists(listFromFileSystem, _app);
+        _writeFileListToDb = new WriteFileListToDb(listFromFileSystem, _app);
 
-        /// <inheritdoc />
-        public MainWindow()
+        LoadAsync();
+    }
+
+    private void SetFileGrid()
+    {
+        var listCollectionView = new ListCollectionView(_list);
+        listCollectionView.GroupDescriptions?.Add(new PropertyGroupDescription("DirectoryName"));
+
+        FileGrid.SetCurrentValue(System.Windows.Controls.ItemsControl.ItemsSourceProperty, listCollectionView);
+    }
+
+    private async void LoadAsync()
+    {
+        var task = Task.Factory.StartNew(Compare);
+        await task;
+
+        if (!string.IsNullOrWhiteSpace(_message))
         {
-            InitializeComponent();
-
-            _roundCorners = new RoundCorners();
-            IApplicationStyle style = new ApplicationStyle(_roundCorners, true);
-            style.Run();
-
-            WindowState = WindowState.Minimized;
-            _app = (App)Application.Current;
-
-            IFileListFromPath fileListFromPath = new FileListFromPath();
-            IListFromFileSystem listFromFileSystem = new ListFromFileSystem(_app, fileListFromPath);
-            _compareFileLists = new CompareFileLists(listFromFileSystem, _app);
-            _writeFileListToDb = new WriteFileListToDb(listFromFileSystem, _app);
-
-            LoadAsync();
+            SetCurrentValue(ShowInTaskbarProperty, true);
+            SetCurrentValue(WindowStateProperty, WindowState.Normal);
+            await this.ShowMessageAsync("directories with changed files:", _message);
+            SetFileGrid();
         }
-
-        private void SetFileGrid()
+        else
         {
-            var listCollectionView = new ListCollectionView(_list);
-            listCollectionView.GroupDescriptions?.Add(new PropertyGroupDescription("DirectoryName"));
-
-            FileGrid.ItemsSource = listCollectionView;
+            Close();
         }
+    }
 
-        private async void LoadAsync()
+    private void Compare()
+    {
+        if (!File.Exists(_app.JsonPath))
         {
-            var task = Task.Factory.StartNew(Compare);
-            await task;
-
-            if (!string.IsNullOrWhiteSpace(_message))
-            {
-                ShowInTaskbar = true;
-                WindowState = WindowState.Normal;
-                await this.ShowMessageAsync("directories with changed files:", _message);
-                SetFileGrid();
-            }
-            else
-            {
-                Close();
-            }
-        }
-
-        private void Compare()
-        {
-            if (!File.Exists(_app.JsonPath))
-            {
-                _writeFileListToDb.Run();
-            }
-
-            _list = _compareFileLists.Value;
-
-            _message = string.Join(Environment.NewLine, _list.Select(item => item.DirectoryName).Distinct());
-
             _writeFileListToDb.Run();
         }
 
+        _list = _compareFileLists.Value;
 
-        private void HyperlinkRequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
-            e.Handled = true;
-        }
+        _message = string.Join(Environment.NewLine, _list.Select(item => item.DirectoryName).Distinct());
 
-        private void AboutWindowClick(object sender, RoutedEventArgs e)
-        {
-            var assembly = typeof(MainWindow).Assembly;
-            IAboutContent aboutWindowContent = new AboutContent(assembly, $@"{AppDomain.CurrentDomain.BaseDirectory}\b.png");
+        _writeFileListToDb.Run();
+    }
 
-            var aboutWindow = new AboutWindow
-                              {
-                                  DataContext = new AboutViewModel(aboutWindowContent, _roundCorners)
-                              };
+    private void HyperlinkRequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+        e.Handled = true;
+    }
 
-            aboutWindow.ShowDialog();
-        }
+    private void AboutWindowClick(object sender, RoutedEventArgs e)
+    {
+        ICurrentAssembly currentAssembly = new CurrentAssembly();
+        IAboutContent aboutContent = new AboutContent(currentAssembly);
+        IAboutModel aboutModel = new AboutViewModel(aboutContent, _style);
+        var aboutWindow = new AboutWindow(aboutModel);
+
+        aboutWindow.ShowDialog();
     }
 }

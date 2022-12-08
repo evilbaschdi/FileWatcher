@@ -1,6 +1,6 @@
 ﻿<controls:MetroWindow x:Class="FileWatcher.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls" xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks" Title="FileWatcher"
-                      Height="600" Width="800" ShowInTaskbar="False" TitleCharacterCasing="Normal" GlowBrush="{DynamicResource MahApps.Brushes.AccentBase}" Icon="Resources/b.ico">
+                      Height="600" Width="800" ShowInTaskbar="False" TitleCharacterCasing="Normal" Icon="Resources/b.ico">
     <!--  RightWindowCommands  -->
     <controls:MetroWindow.RightWindowCommands>
         <controls:WindowCommands>

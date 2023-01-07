@@ -3,9 +3,11 @@ using System.IO;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Navigation;
+using EvilBaschdi.About.Core;
+using EvilBaschdi.About.Core.Models;
+using EvilBaschdi.About.Wpf;
 using EvilBaschdi.Core.Internal;
 using EvilBaschdi.CoreExtended;
-using EvilBaschdi.CoreExtended.Controls.About;
 using FileWatcher.Internal;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
@@ -21,8 +23,6 @@ public partial class MainWindow : MetroWindow
 {
     private readonly App _app;
     private readonly ICompareFileLists _compareFileLists;
-    private readonly IApplicationStyle _style;
-
     private readonly IWriteFileListToDb _writeFileListToDb;
     private List<FileInfo> _list;
     private string _message;
@@ -32,8 +32,8 @@ public partial class MainWindow : MetroWindow
     {
         InitializeComponent();
 
-        _style = new ApplicationStyle(true);
-        _style.Run();
+        IApplicationStyle applicationStyle = new ApplicationStyle(true);
+        applicationStyle.Run();
 
         WindowState = WindowState.Minimized;
         _app = (App)Application.Current;
@@ -96,7 +96,7 @@ public partial class MainWindow : MetroWindow
     {
         ICurrentAssembly currentAssembly = new CurrentAssembly();
         IAboutContent aboutContent = new AboutContent(currentAssembly);
-        IAboutModel aboutModel = new AboutViewModel(aboutContent, _style);
+        IAboutModel aboutModel = new AboutViewModel(aboutContent);
         var aboutWindow = new AboutWindow(aboutModel);
 
         aboutWindow.ShowDialog();

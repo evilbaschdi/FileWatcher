@@ -45,7 +45,7 @@ public partial class MainWindow : MetroWindow
         _compareFileLists = new CompareFileLists(listFromFileSystem, _app);
         _writeFileListToDb = new WriteFileListToDb(listFromFileSystem, _app);
 
-        LoadAsync();
+        LoadAsync().ConfigureAwait(false);
     }
 
     private void SetFileGrid()
@@ -56,7 +56,7 @@ public partial class MainWindow : MetroWindow
         FileGrid.SetCurrentValue(System.Windows.Controls.ItemsControl.ItemsSourceProperty, listCollectionView);
     }
 
-    private async void LoadAsync()
+    private async Task LoadAsync()
     {
         var task = Task.Factory.StartNew(Compare);
         await task;

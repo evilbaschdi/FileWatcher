@@ -1,6 +1,4 @@
 ﻿namespace FileWatcher.Internal;
 
 /// <inheritdoc />
-public interface IWriteFileListToDb : IRun
-{
-}
+public interface IWriteFileListToDb : IRun;

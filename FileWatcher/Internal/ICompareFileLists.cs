@@ -3,6 +3,4 @@
 namespace FileWatcher.Internal;
 
 /// <inheritdoc />
-public interface ICompareFileLists : IValueOfList<FileInfo>
-{
-}
+public interface ICompareFileLists : IListOf<FileInfo>;
